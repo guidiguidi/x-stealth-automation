@@ -1,0 +1,16 @@
+.venv/
+venv/
+.idea/
+__pycache__/
+*.pyc
+chrome-data/
+dialogs/*.txt
+!dialogs/.gitkeep
+settings/config.json
+settings/token_prefs.json
+settings/proxies.txt
+settings/ids.txt
+settings/messages.txt
+!.example.*
+!settings/*.example.*
+.DS_Store

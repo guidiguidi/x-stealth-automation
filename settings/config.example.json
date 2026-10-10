@@ -1,0 +1,6 @@
+{
+  "action_delay": 5,
+  "scroll_time": 4,
+  "proxy_enabled": false,
+  "proxy": "socks5://username:password@ip:port"
+}
