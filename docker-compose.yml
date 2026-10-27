@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  x-stealth:
+    build: .
+    container_name: x-stealth-agent
+    restart: unless-stopped
+    volumes:
+      - ./settings:/app/settings
+      - ./logs:/app/logs
