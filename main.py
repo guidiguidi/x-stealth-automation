@@ -13,13 +13,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 # ========================
-# КОНФИГУРАЦИЯ И НАСТРОЙКИ
+# CONFIGURATION AND SETTINGS
 # ========================
 BASE_DIR = Path(__file__).parent
 SETTINGS_DIR = BASE_DIR / "settings"
 DIALOGS_DIR = BASE_DIR / "dialogs"
 
-# Файлы конфигурации
+# Configuration files
 CONFIG_FILE = SETTINGS_DIR / "config.json"
 TOKEN_PREFS_FILE = SETTINGS_DIR / "token_prefs.json"
 USER_AGENTS_FILE = SETTINGS_DIR / "user_agents.txt"
@@ -30,16 +30,16 @@ BAD_LOG = DIALOGS_DIR / "bad.txt"
 DEFAULT_CONFIG_FILE = SETTINGS_DIR / "default_config.json"
 CONFIG_FILE = SETTINGS_DIR / "config.json"
 
-# Глобальные переменные
+# Global variables
 users = []
 messages = []
 user_agents = []
 config = None
 # ========================
-# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+# HELPER FUNCTIONS
 # ========================
 def init_default_config():
-    """Создает дефолтный конфиг если его нет"""
+    """Creates default configuration if not present"""
     if not DEFAULT_CONFIG_FILE.exists():
         default_config = {
             "action_delay": 4,
@@ -51,32 +51,32 @@ def init_default_config():
             json.dump(default_config, f, indent=2)
 
 def init_folders():
-    """Создает необходимые папки если они не существуют"""
+    """Creates required directories if they do not exist"""
     os.makedirs(SETTINGS_DIR, exist_ok=True)
     os.makedirs(DIALOGS_DIR, exist_ok=True)
 
 
 def log(msg, level="INFO"):
-    """Логирование сообщений"""
+    """Logs formatted messages with timestamps"""
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{timestamp}] [{level}] {msg}")
 
 
-def wait_input(prompt="Нажмите ENTER чтобы продолжить..."):
-    """Ожидание ввода пользователя"""
+def wait_input(prompt="Press ENTER to continue..."):
+    """Wait for user input"""
     input(prompt)
 
 
 def random_message():
-    """Возвращает случайное сообщение из списка"""
+    """Returns a random message from the list"""
     return random.choice(messages) if messages else ""
 
 
 # ========================
-# ЗАГРУЗКА КОНФИГУРАЦИИ
+# CONFIGURATION LOADER
 # ========================
 def load_config():
-    """Загружает конфигурацию, объединяя дефолтные и пользовательские настройки"""
+    """Loads configuration, merging default and user settings"""
     init_default_config()
 
     with open(DEFAULT_CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -90,18 +90,18 @@ def load_config():
                     if key in config:
                         config[key] = user_config[key]
         except json.JSONDecodeError:
-            log("Ошибка чтения config.json, используются значения по умолчанию", "WARNING")
+            log("Error reading config.json, falling back to default values", "WARNING")
 
     return config
 
 def save_config():
-    """Сохраняет текущую конфигурацию в файл"""
+    """Saves current configuration to file"""
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
 
 def load_user_agents():
-    """Загружает список User-Agent'ов"""
+    """Loads user-agent string list"""
     global user_agents
 
     if not USER_AGENTS_FILE.exists():
@@ -119,7 +119,7 @@ def load_user_agents():
 
 
 def load_users():
-    """Загружает список пользователей"""
+    """Loads target user list"""
     global users
 
     if USER_IDS_FILE.exists():
@@ -131,7 +131,7 @@ def load_users():
 
 
 def load_messages():
-    """Загружает список сообщений"""
+    """Loads message template list"""
     global messages
 
     if MESSAGES_FILE.exists():
@@ -143,7 +143,7 @@ def load_messages():
 
 
 def load_token_prefs():
-    """Загружает сохраненные токены"""
+    """Loads persisted session tokens"""
     if not TOKEN_PREFS_FILE.exists():
         return {
             "auth_token": "",
@@ -159,36 +159,36 @@ def load_token_prefs():
 
 
 def save_token_prefs(prefs):
-    """Сохраняет токены в файл"""
+    """Saves session tokens to file"""
     prefs["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
     with open(TOKEN_PREFS_FILE, "w", encoding="utf-8") as f:
         json.dump(prefs, f, indent=2, ensure_ascii=False)
 
 
 # ========================
-# РАБОТА С WEBDRIVER
+# WEBDRIVER ENGINE
 # ========================
 def setup_driver():
-    """Настраивает и возвращает экземпляр WebDriver с антидетект настройками"""
+    """Configures and returns a WebDriver instance with anti-detect settings"""
     options = Options()
 
-    # 1. Базовые настройки для маскировки
+    # 1. Base fingerprint masking options
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
 
-    # 2. Настройка User-Agent
+    # 2. User-Agent setup
     user_agent = random.choice(user_agents)
     options.add_argument(f"user-agent={user_agent}")
 
-    # 3. Прокси настройки (если включены в конфиге)
+    # 3. Proxy configuration (if enabled in config)
     if config.get("proxy_enabled", False) and config.get("proxy"):
         proxy = config["proxy"]
         options.add_argument(f"--proxy-server={proxy}")
         proxy_log = proxy.split('@')[-1] if '@' in proxy else proxy
-        log(f"Используется прокси: {proxy_log}")
+        log(f"Using proxy: {proxy_log}")
 
-    # 4. Дополнительные параметры для маскировки
+    # 4. Additional stealth parameters
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -206,20 +206,20 @@ def setup_driver():
     options.add_argument("--log-level=3")
     options.add_argument("--output=/dev/null")
 
-    # 5. Настройки окна браузера
+    # 5. Browser viewport and window settings
     options.add_argument(f"--window-size={random.randint(900, 1400)},{random.randint(600, 900)}")
 
-    # 6. Отключаем WebDriver признаки
+    # 6. Disable automation and WebDriver flags
     params = {
         "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     }
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
 
     try:
-        # Инициализация драйвера с настройками
+        # Initialize driver with configured options
         driver = webdriver.Chrome(options=options)
 
-        # 7. Изменяем JavaScript свойства
+        # 7. Override JavaScript navigator attributes
         driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
             "source": """
                 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
@@ -229,7 +229,7 @@ def setup_driver():
             """
         })
 
-        # 8. Рандомизация параметров
+        # 8. Parameter randomization
         driver.execute_script(
             "Object.defineProperty(navigator, 'platform', {get: function() {return 'Win32';}});"
         )
@@ -237,26 +237,26 @@ def setup_driver():
             "Object.defineProperty(navigator, 'hardwareConcurrency', {get: function() {return 4;}});"
         )
 
-        # 9. Эмуляция поведения человека
+        # 9. Human behavioral simulation
         action = ActionChains(driver)
         action.move_by_offset(random.randint(1, 5), random.randint(1, 5)).perform()
 
         return driver
 
     except Exception as e:
-        log(f"Ошибка инициализации WebDriver: {str(e)}", "ERROR")
+        log(f"WebDriver initialization failed: {str(e)}", "ERROR")
         raise
 
 
 def login_and_save_tokens(driver):
-    """Выполняет автоматический вход с использованием сохранённых токенов"""
+    """Performs automated login using saved session cookies/tokens"""
     try:
         token_prefs = load_token_prefs()
 
         if not token_prefs.get("auth_token") or not token_prefs.get("ct0"):
-            raise Exception("Токены для входа не найдены в token_prefs.json")
+            raise Exception("Authentication tokens not found in token_prefs.json")
 
-        log("Использую сохранённые токены для автоматического входа")
+        log("Using saved session cookies for automated authentication")
 
         driver.get("https://x.com")
         time.sleep(2)
@@ -280,78 +280,78 @@ def login_and_save_tokens(driver):
 
         current_url = driver.current_url
         if "https://x.com/home" in current_url:
-            log("Успешный автоматический вход (перенаправление на /home)")
+            log("Automated authentication successful (redirected to /home)")
             return True
 
         try:
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-testid="primaryColumn"]')))
-            log("Успешный автоматический вход (найдена лента новостей)")
+            log("Automated authentication successful (feed detected)")
             return True
         except:
-            raise Exception("Не удалось подтвердить вход - возможно, токены устарели")
+            raise Exception("Unable to confirm authentication - tokens may have expired")
 
     except Exception as e:
-        log(f"Ошибка автоматического входа: {str(e)}", "ERROR")
-        log("Попробуйте обновить токены вручную", "WARNING")
+        log(f"Automated authentication failed: {str(e)}", "ERROR")
+        log("Please renew session tokens manually", "WARNING")
 
         driver.get("https://x.com/i/flow/login")
-        wait_input("Выполните вход вручную и нажмите ENTER...")
+        wait_input("Please complete manual login and press ENTER...")
 
         start_time = time.time()
         while time.time() - start_time < 30:
             if "https://x.com/home" in driver.current_url:
-                log("Ручной вход выполнен успешно (перенаправление на /home)")
+                log("Manual authentication successful (redirected to /home)")
                 break
             time.sleep(1)
 
-        if input("Сохранить новые токены для следующего входа? (y/n): ").lower() == "y":
+        if input("Save new tokens for future sessions? (y/n): ").lower() == "y":
             cookies = driver.get_cookies()
             token_prefs = {
                 "auth_token": next((c["value"] for c in cookies if c["name"] == "auth_token"), ""),
                 "ct0": next((c["value"] for c in cookies if c["name"] == "ct0"), ""),
             }
             save_token_prefs(token_prefs)
-            log("Новые токены успешно сохранены")
+            log("New tokens successfully saved")
 
         return True
 
 # ========================
-# ОСНОВНЫЕ ФУНКЦИИ
+# CORE ACTION ROUTINES
 # ========================
 def random_actions(driver):
     """
-    Выполняет случайные действия в браузере для имитации человеческого поведения
-    Возможные действия:
-    - Случайный скроллинг
-    - Перемещение курсора
-    - Клики по пустому месту
-    - Переключение между вкладками
-    - Микро-паузы
+    Executes randomized actions in the browser to simulate human activity
+    Simulated actions:
+    - Randomized scrolling
+    - Mouse cursor path deviation
+    - Incidental viewport clicks
+    - Tab switching simulation
+    - Micro-pauses and reading delays
     """
     try:
         actions = [
-            # Случайный скроллинг (вверх/вниз)
+            # Randomized scrolling (up/down)
             lambda: driver.execute_script(f"window.scrollBy(0, {random.randint(-300, 300)})"),
 
-            # Движение курсора по случайной траектории
+            # Move cursor along randomized trajectory
             lambda: ActionChains(driver).move_by_offset(
                 random.randint(-50, 50),
                 random.randint(-50, 50)
             ).perform(),
 
-            # Клик по пустому месту (50% chance)
+            # Click whitespace (50% chance)
             lambda: ActionChains(driver).click().perform() if random.random() > 0.5 else None,
 
-            # Микро-пауза с разной длительностью
+            # Variable micro-pause
             lambda: time.sleep(random.uniform(0.1, 1.2)),
 
-            # Переключение между вкладками (если их больше одной)
+            # Tab cycling (if multiple tabs exist)
             lambda: driver.switch_to.window(random.choice(driver.window_handles))
             if len(driver.window_handles) > 1 else None
         ]
 
-        # Выполняем 3-5 случайных действий
+        # Perform 3-5 randomized actions
         for _ in range(random.randint(3, 5)):
             try:
                 random.choice(actions)()
@@ -360,15 +360,15 @@ def random_actions(driver):
                 continue
 
     except Exception as e:
-        log(f"Ошибка при выполнении случайных действий: {str(e)}", "WARNING")
+        log(f"Error performing random actions: {str(e)}", "WARNING")
 
 
 def human_type(element, text):
     """
-    Эмулирует человеческий ввод текста с:
-    - Разной скоростью набора
-    - Случайными опечатками и исправлениями
-    - Естественными паузами между словами
+    Simulates human typing dynamics with:
+    - Variable typing speed and cadence
+    - Natural typos with Backspace corrections
+    - Realistic word-boundary pauses
     """
     try:
         words = text.split(' ')
@@ -378,7 +378,7 @@ def human_type(element, text):
 
                 delay = random.uniform(0.05, 0.3)
 
-                # 10% chance сделать опечатку и исправить её
+                # 10% chance to simulate a typo and backspace correction
                 if random.random() < 0.1 and j > 2:
                     wrong_char = random.choice('abcdefghijklmnopqrstuvwxyz')
                     element.send_keys(wrong_char)
@@ -394,29 +394,29 @@ def human_type(element, text):
                 element.send_keys(' ')
                 time.sleep(space_delay)
 
-                # 5% chance сделать паузу подольше (как будто задумался)
+                # 5% chance of a thinking pause
                 if random.random() < 0.05:
                     time.sleep(random.uniform(0.5, 1.5))
 
     except Exception as e:
-        log(f"Ошибка при эмуляции ввода: {str(e)}", "WARNING")
+        log(f"Typing emulation error: {str(e)}", "WARNING")
         element.send_keys(text)
 
 def human_like_click(driver, element):
-    """Эмуляция человеческого клика"""
+    """Simulates human mouse click with variable down/up delays"""
     action = ActionChains(driver)
     action.move_to_element(element).pause(random.uniform(0.1, 0.5)).click().perform()
 def send_dm(driver, username, message):
     """
-    Отправляет прямое сообщение пользователю с полной эмуляцией человеческого поведения:
-    1. Случайные действия перед началом
-    2. Естественный поиск пользователя
-    3. Человекообразный ввод сообщения
-    4. Проверка отправки
-    5. Логирование результата
+    Sends direct message to target with human behavioral simulation:
+    1. Warm-up interactions before engagement
+    2. Natural profile search navigation
+    3. Dynamic keystroke simulation
+    4. Delivery verification
+    5. Structured logging
     """
     try:
-        log(f"Начинаю отправку сообщения для @{username}")
+        log(f"Initiating message dispatch for @{username}")
 
         random_actions(driver)
 
@@ -452,7 +452,7 @@ def send_dm(driver, username, message):
         time.sleep(random.uniform(0.8, 1.5))
 
         next_buttons = driver.find_elements(
-            By.XPATH, '//span[contains(text(), "Next") or contains(text(), "Далее")]'
+            By.XPATH, '//span[contains(text(), "Next")]'
         )
         if next_buttons:
             human_like_click(driver, next_buttons[0])
@@ -479,7 +479,7 @@ def send_dm(driver, username, message):
 
         check_sent(driver)
 
-        log(f"Сообщение для @{username} успешно отправлено")
+        log(f"Message to @{username} successfully sent")
         with open(GOOD_LOG, "a", encoding="utf-8") as f:
             f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {username} | {message}\n")
 
@@ -488,23 +488,23 @@ def send_dm(driver, username, message):
         return True
 
     except Exception as e:
-        error_msg = f"Ошибка отправки для @{username}: {str(e)}"
+        error_msg = f"Delivery error for @{username}: {str(e)}"
         log(error_msg, "ERROR")
 
         with open(BAD_LOG, "a", encoding="utf-8") as f:
             f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {username} | {error_msg}\n")
 
         if "can't be messaged" in str(e):
-            log(f"Пытаюсь подписаться на @{username}...", "WARNING")
+            log(f"Attempting follow for @{username}...", "WARNING")
             follow_user(driver, username)
         elif "user not found" in str(e):
-            log(f"Пользователь @{username} не найден, пропускаю", "WARNING")
+            log(f"Target user @{username} not found, skipping", "WARNING")
 
         time.sleep(random.uniform(5.0, 10.0))
         return False
 
 def check_sent(driver):
-    """Проверяет что сообщение было отправлено"""
+    """Verifies message delivery in chat thread"""
     start = time.time()
     while time.time() - start < 10:
         elements = driver.find_elements(
@@ -518,8 +518,8 @@ def check_sent(driver):
 
 
 def follow_user(driver, username):
-    """Подписывается на пользователя"""
-    log(f"Попытка подписаться на @{username}")
+    """Follows the target user"""
+    log(f"Attempting to follow @{username}")
     driver.get(f"https://x.com/{username}")
 
     start = time.time()
@@ -529,20 +529,20 @@ def follow_user(driver, username):
             label = btn.get_attribute("aria-label")
             if label == f"Follow @{username}":
                 btn.click()
-                log(f"Успешно подписался на @{username}")
+                log(f"Successfully followed @{username}")
                 return
             if label in [f"Following @{username}", f"Unfollow @{username}"]:
-                log(f"Уже подписан на @{username}")
+                log(f"Already following @{username}")
                 return
         time.sleep(0.5)
     raise Exception("follow button not found")
 
 
 # ========================
-# ГЛАВНАЯ ФУНКЦИЯ
+# ENTRYPOINT
 # ========================
 def main():
-    """Основная функция выполнения скрипта"""
+    """Main orchestration loop"""
     global config
 
     try:
@@ -553,11 +553,11 @@ def main():
         load_messages()
 
         if not users:
-            log("Нет пользователей для отправки сообщений", "ERROR")
+            log("No target users found to message", "ERROR")
             return
 
         if not messages:
-            log("Нет сообщений для отправки", "ERROR")
+            log("No message templates available to dispatch", "ERROR")
             return
 
         driver = setup_driver()
@@ -577,7 +577,7 @@ def main():
                         time.sleep(config["action_delay"])
 
                 except Exception as e:
-                    log(f"Ошибка для @{user}: {str(e)}", "ERROR")
+                    log(f"Error processing @{user}: {str(e)}", "ERROR")
 
                     with open(BAD_LOG, "a", encoding="utf-8") as f:
                         f.write(f"{user} : {str(e)}\n")
@@ -591,10 +591,10 @@ def main():
 
         finally:
             driver.quit()
-            log("Работа завершена")
+            log("Pipeline completed")
 
     except Exception as e:
-        log(f"Критическая ошибка: {str(e)}", "ERROR")
+        log(f"Critical runtime error: {str(e)}", "ERROR")
         sys.exit(1)
 
 
