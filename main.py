@@ -102,8 +102,6 @@ def save_config():
 
 def load_user_agents():
     """Loads user-agent string list"""
-    global user_agents
-
     if not USER_AGENTS_FILE.exists():
         user_agents.extend([
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -120,8 +118,6 @@ def load_user_agents():
 
 def load_users():
     """Loads target user list"""
-    global users
-
     if USER_IDS_FILE.exists():
         with open(USER_IDS_FILE, "r", encoding="utf-8") as f:
             users.extend(
@@ -132,8 +128,6 @@ def load_users():
 
 def load_messages():
     """Loads message template list"""
-    global messages
-
     if MESSAGES_FILE.exists():
         with open(MESSAGES_FILE, "r", encoding="utf-8") as f:
             messages.extend(
